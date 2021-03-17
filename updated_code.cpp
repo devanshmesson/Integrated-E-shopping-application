@@ -1,25 +1,41 @@
-#include<iostream>
-#include<sstream>
-#include<fstream>
-#include<vector>
-#include<string.h>
-#include<unordered_map>
+#include<bits/stdc++.h>
 using namespace std;
 
-// #ifndef ONLINE_JUDGE
-// #define freopen 
-// #else 
-// #define freopen 
-// #endif
-
 int cnt=0;
-const int MOD =1000000007;
 #define endl "\n"
+#define float double
+//#define int long long int
+char store[32]={'!','"','#','$','%','&','\'','(',')','*','+',',','-','.','/',':',';','<','=','>','?','@','[','\\',']','^','_','`','{','|','}','~',};
+int bagofword[10000][10000];
+bool sentiment[100000],test_sentiment[100000];
+string line, stopword, exists;
+vector<string>tokens,test_tokens; //to store tokens
+vector<string>sentences,testsent;
+int punctuation[128]={0}; //to store ASCII values of punctuations
+unordered_map<string,bool>hashes;
+unordered_map<string,int>tokenhash;
+int ind,token_hash,totalsentences,totaltokens,datasetsize;
+int positiveprob_numerator;
+int positiveprob_denominator;
+int negativeprob_numerator;
+int negativeprob_denominator;
+unordered_map<string,int>visit;
 
-int bagofword[1000][1000];
-bool sentiment[1000];
-int hashes[100000];
-int power[30],stringhash[100000];
+int true_positive=0,true_negative=0,false_negative=0,false_positive=0;
+
+
+int positivedata[10000][10000],negativedata[10000][10000],positiveindex=0,negativeindex=0;
+int positivesentiment[10000],negativesentiment[10000];
+
+
+int tokenprob_num[10000][2]; //numerator of the probability of occurrence/non-occurrence of token[i]
+int tokenprob_den[10000][2]; //denominator of the probability of occurrence/non-occurrence of token[i]
+
+int prob_givenpositive_num[10000][2]; //numerator of the probability of occurrence/non-occurrence of token[i] given it belongs to positive class.
+int prob_givenpositive_den[10000][2]; //denominator of the probability of occurrence/non-occurrence of token[i] given it belongs to positive class.
+int prob_givennegative_num[10000][2]; //numerator of the probability of occurrence/non-occurrence of token[i] given it belongs to negative class.
+int prob_givennegative_den[10000][2]; //denominator of the probability of occurrence/non-occurrence of token[i] given it belongs to negative class.
+
 int ischar(char c)
 {
   if(c>='a'&& c<='z')return 1;
@@ -31,7 +47,7 @@ int notchar(string str,int ind)
 {
     char c=str[ind-1];
     char d=str[ind+1];
-    if(str[ind]==',')return 1;
+    for(int i=0;i<32;i++)if(str[ind]==store[i])return 1;
     if(ischar(c) && ischar(d))return 0;
   return 1;
 }
@@ -44,104 +60,169 @@ int modular_exponentiation(int base,int exponent,int MOD)
   return ans;
 }
 
-int precalculate()
-{
-  power[0]=1;
-  for(int i=1;i<=20;i++)
-    {
-      power[i]=(power[i-1] * 1LL * 29) % MOD;
-    }
-}
 
-int calculate_hash(string word)
+int clean_data(string &sentence,int i,string check)
 {
-  //Formula : [Summation:(i=0 to n-1) (S[i]*p^i) ]  % MOD
-  //cout<<"HI"<<endl;
-  int p=29,value=0;
-
-  for(int i=0;i<word.size();i++)
+  for(int j=0;j<sentence.size();j++)
   {
-    int intvalue=word[i]-97+1;
-    if(word[i] == '\'')intvalue=27;
-    (value+=( intvalue * 1LL * power[i] ) % MOD ) % MOD;
+   char word=sentence[j];
+   int ascii_word=(int)word;
+   int last=sentence.size()-1;
+
+   if(sentence[last]=='p' && check=="train"){sentence[last]=' ';sentiment[i]=1;}
+   if(sentence[last]=='n' && check=="train"){sentence[last]=' ';sentiment[i]=0;}
+
+   if(sentence[last]=='p' && check=="test"){sentence[last]=' ';test_sentiment[i]=1;  }
+   if(sentence[last]=='n' && check=="test"){sentence[last]=' ';test_sentiment[i]=0;}
+
+   if(punctuation[ascii_word]==1 && notchar(sentence,j) )sentence[j]=' ';
+   if(ascii_word >= 48 && ascii_word <= 57)sentence[j]=' ';
+   if(sentence[j] >= 65 && sentence[j] <=90)
+   sentence[j]=97+sentence[j]-65;  
   }
-  //if(value==16)cout<<word<<" "<<value<<endl;
-  return value;
+
 }
 
-int binarysearch(int value)
+
+char tokenize_test(string &line)
 {
-   int l=0,r=cnt-1;
-   while(l<r)
-   {
-     int mid=(l+r)/2;
-     if(value<hashes[mid])r=mid;
-     else if(value==hashes[mid])return 1;
-     else if(value>hashes[mid])l=mid+1;
-   }
-   return 0;
+  stringstream tkn(line);
+  string token;
+  test_tokens.clear();
+  visit.clear();
+  while(tkn>>token)
+  {
+   //check if it's a stopword or not
+    if(hashes[token]==0 && visit[token]==0) // If it's not a stopword and if its a new token,then save it.
+    {
+      test_tokens.push_back(token); //saving unique tokens
+      visit[token]=1;
+    }
+  }
+  cnt++;
 }
 
-int merge_sorted_arrays(int l,int mid,int r)
-{ 
-   //make two arrays to store l..mid and mid+1..r
-  // cout<<"\n\nMERGE SORTED ARRAYS "<<l<<" "<<mid<<" "<<r<<"\n\n";
-  int n=mid-l+1,m=r-(mid+1)+1;
-  int left[n],right[m];
-
+int tokenize_train(string &line)
+{
+  stringstream tkn(line);
+  string token;
   
-  for(int i=l;i<=mid;i++)
+  while(tkn>>token)
   {
-    left[i-l]=hashes[i];
-  }
-  for(int i=mid+1;i<=r;i++)
-  {
-    right[i-(mid+1)]=hashes[i];
-  }
-
-
-  int i=0,j=0,k=l;
-
-  while(i<n && j<m)
-  {
-    if(left[i]<right[j])
+   //check if it's a stopword or not
+    if(hashes[token]==0 && tokenhash[token]==0) // If it's not a stopword and if its a new token,then save it.
     {
-      hashes[k++]=left[i];
-      i++;
+      tokens.push_back(token); //saving unique tokens
+      tokenhash[token]=ind++; //hashing the token
+      if(tokenhash[token]==0)exists=token;
+      token_hash=tokenhash[token];
+      bagofword[cnt][token_hash]=1; //forming feature matrix  
     }
-    else 
+    else if(hashes[token]==0 && tokenhash[token]!=0)// If it's not a stopword and if its not a new token,then increment it.
     {
-      hashes[k++]=right[j];
-      j++;
+      token_hash=tokenhash[token];
+      bagofword[cnt][token_hash]+=1; //forming feature matrix  
     }
   }
-
-  while(i<n)hashes[k++]=left[i++];
-  while(j<m)hashes[k++]=right[j++];
+  cnt++;
 }
 
-int merge_sort(int l,int r)
+int laplace_smoothing(int *num, int *den,string check)
 {
-  int mid=(l+r)/2;
-  if(l<r)
+  int alpha=1,number_of_class=2;
+  *num=0+alpha;
+  *den= alpha * number_of_class;
+  
+  if(check=="positive")*den+=positiveindex;
+  else if(check=="negative")*den+=negativeindex;
+}
+
+int display_sentiment(string &line)
+{ 
+ long double positive_sent_num_num=positiveprob_numerator;
+ long double positive_sent_num_den=positiveprob_denominator;
+
+// int positive_sent_den_num=1;
+// int positive_sent_den_den=1;
+long double  negative_sent_num_num=negativeprob_numerator;
+long  double negative_sent_num_den=negativeprob_denominator;
+
+int turn =0;
+//positive probability testing
+for(auto x: test_tokens)
+{
+  int i=tokenhash[x];
+  int num=0;
+  int den=0;
+  if((i==0 && x!=exists) || prob_givenpositive_num[i][1]==0) //This means, this token is a new word
   {
-    merge_sort(l,mid);
-    merge_sort(mid+1,r);
-    merge_sorted_arrays(l,mid,r);
+    laplace_smoothing(&num,&den,"positive");
+  }
+  else 
+  {
+     num=prob_givenpositive_num[i][1];
+     den=prob_givenpositive_den[i][1];
+  }
+  positive_sent_num_num*=num;
+  positive_sent_num_num/=den;
+ // cout<<positive_sent_num_num<<endl;
+} 
+
+//if(positive_sent_num_num==0)cout<<"hi"<<endl;
+
+//Negative probability testing
+for(auto x: test_tokens)
+{
+  int i=tokenhash[x];
+  int num;
+  int den;
+  if((i==0 && x!=exists) || prob_givennegative_num[i][1]==0) //This means, this token is a new word
+  {
+    laplace_smoothing(&num,&den,"negative");
+  }
+  else 
+  {
+     num=prob_givennegative_num[i][1];
+     den=prob_givennegative_den[i][1];
+  }
+ 
+  
+  negative_sent_num_num*=num;
+  negative_sent_num_num/=den;
+} 
+//Comparing positive and negative probabilities by cross multiplication 
+//cross multiplication is done to avoid precision issues!
+
+float positive_ans=positive_sent_num_num ;
+float negative_ans=negative_sent_num_num ;
+
+if(positive_ans > negative_ans )
+  {
+    //cout<<"This review is positive!"<<endl;
+    return 1;
+  }
+else if(positive_ans == negative_ans)
+  {
+    //cout<<"This review is neutral!"<<endl;
+    return -1;
+  }
+else if(positive_ans < negative_ans)
+  {
+    //cout<<"This review is negative!"<<endl;
+    return 0;
   }
 }
+
+
+// int Calculate_Accuracy()
+// {
+  
+// }
 
 main()
 {
- freopen("input.txt","r",stdin);
+ freopen("Train_data.txt","r",stdin);
  freopen("output.txt","w",stdout);
- string line;
- vector<string>tokens; //to store tokens
- vector<string>sentences;
- int punctuation[128]={0}; //to store ASCII values of punctuations
- 
- char store[32]={'!','"','#','$','%','&','\'','(',')','*','+',',','-','.','/',':',';','<','=','>','?','@','[','\\',']','^','_','`','{','|','}','~',};
- 
 //-------------------------------------------------------------------------------
 
  //Marking the punctuations
@@ -157,60 +238,30 @@ main()
   sentences.push_back(line);
  }
 
- int totalsentences = sentences.size();
+ totalsentences = sentences.size();
 
 //-------------------------------------------------------------------------------
 
  //Remove punctuation, numbers from sentences and lowering the case
  for(int i=0;i<sentences.size();i++)
  {
-   for(int j=0;j<sentences[i].size();j++)
-   {
-     char word=sentences[i][j];
-     int ascii_word=(int)word;
-     int last=sentences[i].size()-1;
-     if(sentences[i][last]=='p'){sentences[i][last]=' ';sentiment[i]=1;}
-     if(sentences[i][last]=='n'){sentences[i][last]=' ';sentiment[i]=0;}
-     if(punctuation[ascii_word]==1 && notchar(sentences[i],j) )sentences[i][j]=' ';
-     if(ascii_word >= 48 && ascii_word <= 57)sentences[i][j]=' ';
-     if(sentences[i][j] >= 65 && sentences[i][j] <=90)
-     sentences[i][j]=97+sentences[i][j]-65;
-   }
+    clean_data(sentences[i],i,"train");
  }
  
-//-------------------------------------------------------------------------------
- // Removing numbers
- 
- // for(int i=0;i<sentences.size();i++)
- // {
- //   for(int j=0;j<sentences[i].size();j++)
- //   {
- //     cout<<sentences[i][j];
- //   }
- //   cout<<endl;
- // }
-
 //------------------------------------------------------------------------
   
  //Marking stopwords through string hashing
- //Using polynomial rolling hash function (string hashing)
-  precalculate();
   ifstream fin;
   ofstream fout;
   fin.open("stopwords.txt");
-  unordered_map<string,bool>hashes;
-  unordered_map<string,int>tokenhash;
-  string stopword;
+ 
   cnt=0;
   while(fin)
   {
     getline(fin,stopword);
     hashes[stopword]=1;
   }
-  cnt=0;
-  int ind=0,token_hash;
-  //merge_sort(0,cnt-1);
-
+  cnt=0,ind=0;
   
 //--------------------------------------------------------------------------------
 
@@ -220,44 +271,25 @@ main()
 
  for(auto line: sentences)
  {
-    stringstream tkn(line);
-    string token;
-  
-  while(tkn>>token)
-  {
-  //cout<<token;
-  // check if it's a stopword or not
-    if(hashes[token]==0 && tokenhash[token]==0) // If it's not a stopword and if its a new token,then save it.
-    {
-      tokens.push_back(token); //saving unique tokens
-      tokenhash[token]=ind++; //hashing the token
-      token_hash=tokenhash[token];
-      bagofword[cnt][token_hash]=1; //forming feature matrix  
+   tokenize_train(line);  
+ }
+ totaltokens=tokens.size();
+ 
 
-    }
-    else if(hashes[token]==0 && tokenhash[token]!=0)// If it's not a stopword and if its not a new token,then increment it.
-    {
-      token_hash=tokenhash[token];
-      bagofword[cnt][token_hash]+=1; //forming feature matrix  
-    }
-  }
-  cnt++;
-}
-int totaltokens=tokens.size();
-for(auto x:tokens)cout<<x<<" ";
+ // for(auto x:tokens)cout<<x<<" ";
 
 //-------------------------------------------------------------------------
 
 //Printing feature matrix
-for(int i=0;i<totalsentences;i++)
-{
-  cout<<"\nSentence "<<i+1<<":";
-  for(int j=0;j<totaltokens;j++)
-  {
-    cout<<bagofword[i][j]<<" ";  
-  }
-  cout<<"   "<<sentiment[i]; //target vector
-}
+// for(int i=0;i<totalsentences;i++)
+// {
+//   cout<<"\nSentence "<<i+1<<":";
+//   for(int j=0;j<totaltokens;j++)
+//   {
+//     cout<<bagofword[i][j]<<" ";  
+//   }
+//   cout<<"   "<<sentiment[i]; //target vector
+// }
 
 //-----------------------------------------------------------
 // Step 1,2,3:
@@ -265,8 +297,7 @@ for(int i=0;i<totalsentences;i++)
 
 //1.Taking the Positive class.
 
-int positivedata[100][100],negativedata[100][100],positiveindex=0,negativeindex=0;
-int positivesentiment[100],negativesentiment[100];
+
 for(int i=0;i<totalsentences;i++)
 {
   if(sentiment[i]==1)
@@ -290,32 +321,32 @@ for(int i=0;i<totalsentences;i++)
 
 }
 
-cout<<"\n\nSIZE:"<<positiveindex<<" "<<negativeindex<<endl;
+//cout<<"\n\nSIZE:"<<positiveindex<<" "<<negativeindex<<endl;
 //----------------------------------------------------
 //Printing the positivedataset and negativedataset
-cout<<"\n\nPositive dataset"<<endl;
+// cout<<"\n\nPositive dataset"<<endl;
 
-for(int i=0;i<positiveindex;i++)
-{
-  for(int j=0;j<totaltokens;j++)
-  {
-    cout<<positivedata[i][j]<<" ";
-  }
-  cout<<"  "<<positivesentiment[i]<<endl;
-}
+// for(int i=0;i<positiveindex;i++)
+// {
+//   for(int j=0;j<totaltokens;j++)
+//   {
+//     cout<<positivedata[i][j]<<" ";
+//   }
+//   cout<<"  "<<positivesentiment[i]<<endl;
+// }
 
-cout<<"\nNegative dataset"<<endl;
+// cout<<"\nNegative dataset"<<endl;
 
-for(int i=0;i<negativeindex;i++)
-{
-  for(int j=0;j<=totaltokens;j++)
-  {
-    cout<<negativedata[i][j]<<" ";
-  }
-  cout<<"  "<<negativesentiment[i]<<endl;
-}
+// for(int i=0;i<negativeindex;i++)
+// {
+//   for(int j=0;j<=totaltokens;j++)
+//   {
+//     cout<<negativedata[i][j]<<" ";
+//   }
+//   cout<<"  "<<negativesentiment[i]<<endl;
+// }
 
-int datasetsize=positiveindex + negativeindex;
+datasetsize=positiveindex + negativeindex;
 
 //-------------------------------------------------
 //Step 4: 
@@ -326,10 +357,10 @@ int datasetsize=positiveindex + negativeindex;
                      datasetsize               
 */
 
-int positiveprob_numerator=positiveindex;
-int positiveprob_denominator=datasetsize;
+positiveprob_numerator=positiveindex;
+positiveprob_denominator=datasetsize;
 
-cout<<"\nPostive probability : "<<positiveprob_numerator<<"/"<<positiveprob_denominator<<"\n";
+//cout<<"\nPostive probability : "<<positiveprob_numerator<<"/"<<positiveprob_denominator<<"\n";
 
 //-------------------------------------------------
 //Step 5:
@@ -340,10 +371,10 @@ cout<<"\nPostive probability : "<<positiveprob_numerator<<"/"<<positiveprob_deno
                      datasetsize               
 */
 
-int negativeprob_numerator=negativeindex;
-int negativeprob_denominator=datasetsize;
+negativeprob_numerator=negativeindex;
+negativeprob_denominator=datasetsize;
 
-cout<<"Negativeprobability: "<<negativeprob_numerator<<"/"<<negativeprob_denominator<<endl;
+//cout<<"Negativeprobability: "<<negativeprob_numerator<<"/"<<negativeprob_denominator<<endl;
 
 //--------------------------------------------------------
 //Step 6 and 7: 
@@ -353,13 +384,10 @@ cout<<"Negativeprobability: "<<negativeprob_numerator<<"/"<<negativeprob_denomin
 
 /*
 Probability of occurrence of token[i] in dataset: 
-
 Count 1s of token[i] in positivedata + Count 1s of token[i] in negativedata  
   ----------------------------------------------------------------------------
                                     totaldatasetsize
-
 Probability of non-occurrence of token[i] in dataset:
-
 datasetsize - Count 1s of token[i] in positivedata + Count 1s of token[i] in negativedata  
 -----------------------------------------------------------------------------------------
                                     totaldatasetsize 
@@ -370,39 +398,33 @@ Step 8:
 Probability of token[i],given that it's class is positive.
 Denoted in coding as prob_givenpositive[token[i]][occurence] 
 Represented as P( Token[i] | Positive ) = 
-
                                   No. of 1s of token[i]
 prob_givenpositive[token[i]][1]  ---------------------
                                   positivedatasetsize
-
-
                                  No. of 0s of token[i]
 prob_givenpositive[token[i]][0]  ---------------------
                                   positivedatasetsize
-
-
                                   No. of 1s of token[i]
 prob_givennegative[token[i]][1]  ---------------------
                                   negativedatasetsize
-
                                  No. of 0s of token[i]
 prob_givennegative[token[i]][0]  ---------------------
                                   negativedatasetsize
-
 Note : This step will be done in between step 6 and 7.
-
 */
 
 
 //Counting 1s of token[i] in positive dataset and negative dataset
 
-int tokenprob_num[totaltokens+1][2]; //numerator of the probability of occurrence/non-occurrence of token[i]
-int tokenprob_den[totaltokens+1][2]; //denominator of the probability of occurrence/non-occurrence of token[i]
 
-int prob_givenpositive_num[totaltokens+1][2]; //numerator of the probability of occurrence/non-occurrence of token[i] given it belongs to positive class.
-int prob_givenpositive_den[totaltokens+1][2]; //denominator of the probability of occurrence/non-occurrence of token[i] given it belongs to positive class.
-int prob_givennegative_num[totaltokens+1][2]; //numerator of the probability of occurrence/non-occurrence of token[i] given it belongs to negative class.
-int prob_givennegative_den[totaltokens+1][2]; //denominator of the probability of occurrence/non-occurrence of token[i] given it belongs to negative class.
+for(int i=0;i<totaltokens;i++)
+{
+  prob_givenpositive_num[i][0]=0;
+  prob_givenpositive_num[i][1]=0;
+
+  prob_givennegative_num[i][0]=0;
+  prob_givennegative_num[i][1]=0;
+}
 
 
 
@@ -450,6 +472,8 @@ for(int i=0;i<totaltokens;i++) //Iterating over all tokens
   //Rest of the elements of token[i] except 1s are 0s.
 }
 
+/*
+
 cout<<"\nProbability of occurrence of token : "<<endl;
 for(int i=0;i<totaltokens;i++)
 {
@@ -493,14 +517,46 @@ for(int i=0;i<totaltokens;i++)
   cout<<tokens[i]<<" ";
   cout<<prob_givennegative_num[i][0]<<"/"<<prob_givennegative_den[i][0]<<endl;
 }
+*/
 
+//--------------------------------------------------------------------------------------
+//Testing our Naive bayes model on unseen data
 
-//LAPLACE CORRECTION PENDING
-//OOPS PENDING
-//TESTING DATA PENDING
+ifstream fiin;
+fiin.open("Test_data.txt");
+int cn=0;
+while(getline(fiin,line))
+{
+  testsent.push_back(line);
+  cn++;
+}
+cout<<"Total_data="<<cn+datasetsize<<endl;
+cout<<"Testing data="<<cn<<" "<<"(20%)"<<endl;
+cout<<"Training data="<<datasetsize<<"(80%)"<<endl;
+for(int i=0;i<cn;i++)
+{
+ //cout<<testsent[i]<<endl;
+  clean_data(testsent[i],i,"test");
+  tokenize_test(testsent[i]);
+  int polarity=display_sentiment(testsent[i]);
+  //cout<<polarity<<endl;
 
-} 
+  if(test_sentiment[i]==1)
+  {
+    if(polarity==1)true_positive++;
+    else if(polarity==0)false_negative++;
+  }
+  else if(test_sentiment[i]==0)
+  {
+    if(polarity==0)true_negative++;
+    else if(polarity==1)false_positive++;
+  }
+}
+
+  float accuracy = true_negative + true_positive;
+  accuracy/=true_negative + true_positive + false_positive + false_negative;
+
+  cout<<"Accuracy of Naive bayes model is "<<accuracy*100<<"%"<<endl;
 
 //----------------------------------------------------------------------------------
-
-
+}
