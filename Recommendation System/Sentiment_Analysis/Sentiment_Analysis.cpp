@@ -195,7 +195,7 @@ else if(positive_ans < negative_ans)
 int main()
 {
  Sentiment_Analysis sent;
- freopen("Train_data.txt","r",stdin);
+ freopen("Training_data_phone reviews.txt","r",stdin);
  freopen("output8.txt","w",stdout);
 
  //Marking the punctuations
@@ -390,7 +390,7 @@ for(int i=0;i<totaltokens;i++) //Iterating over all tokens
 //Testing our Naive bayes model on unseen data
 
 ifstream fiin;
-fiin.open("Test_data.txt");
+fiin.open("Test_data_phone reviews.txt");
 int cn=0;
 while(getline(fiin,line))
 {
