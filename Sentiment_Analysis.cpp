@@ -1,6 +1,7 @@
 #include<bits/stdc++.h>
 using namespace std;
 
+
 int cnt=0;
 int positivedata[5001][10000],negativedata[5001][10000],positiveindex=0,negativeindex=0;
 int positivesentiment[5001],negativesentiment[5001];
@@ -195,7 +196,7 @@ int main()
 {
  Sentiment_Analysis sent;
  freopen("Train_data.txt","r",stdin);
- freopen("output.txt","w",stdout);
+ freopen("output8.txt","w",stdout);
 
  //Marking the punctuations
  for(int i=0;i<32;i++)
