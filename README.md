@@ -1,9 +1,9 @@
-## Introduction 
+# Introduction 
 This project is representing an e-shopping application which can be used by customers. A particular category of product is present in the database. Customers can efficiently select, safely purchase, and can get the selected product really fast at his/her doorstep.
 
 ![image](https://user-images.githubusercontent.com/46960431/112830021-98abbb00-90af-11eb-9f76-05bd85c168e0.png)
 
-## Motivation
+# Motivation
 **Recommendation System:**  
 Motivation comes from the fact that conventional shopping is not much efficient because the shops have huge variety of products which have similar specifications or brands and as a result customer gets confused to choose the best fit product for him and as a result he may waste his money on a bad product. 
 
@@ -15,10 +15,10 @@ Motivation to efficiently implement Dijkstra algorithm comes from the fact that 
 
 ![image](https://user-images.githubusercontent.com/46960431/112865111-1387cc80-90d6-11eb-9437-1e3f76bf9a59.png)
 
-## Problem Statement
+# Problem Statement
 In this pandemic, people  are forced to stay at home as it becomes risky to go outside and do shopping in crowded areas. Therefore, E-shopping becomes an easy and safe alternative for shopping goods, which also makes the experience more helpful and fulfilling for a buyer than conventional shopping. 
 
-## Objective
+# Objective
 
 1.Recommend the best and customized product for the customer on the basis of customer’s liking of brand of product, customer’s budget and reviews given by different customers who had just purchased that specific item.
 
@@ -26,7 +26,7 @@ In this pandemic, people  are forced to stay at home as it becomes risky to go o
 
 3.Suggest the ambulance a shortest possible path as soon as possible in the real road network by applying time efficient shortest path algorithms.
 
-## Methodology
+# Methodology
 
 For Recommendation System-  
 2 methods are being implemented:
@@ -45,12 +45,12 @@ For solving Time Efficient Shortest Path-
 * Binary heap implementation
 * Bi-directional Dijkstra algorithm (Giving Least execution time) 
 
-## Use-Case Diagram
+# Use-Case Diagram
 
 ![image](https://user-images.githubusercontent.com/46960431/112867546-b04b6980-90d8-11eb-9eee-d05c76457d1a.png)
 
 
-## Algorithms 
+# Algorithms 
 
 * ### Algorithm of Collaborative Filtering:  
 
@@ -64,7 +64,7 @@ For solving Time Efficient Shortest Path-
 
 ![image](https://user-images.githubusercontent.com/46960431/112868671-f0f7b280-90d9-11eb-89fd-10c5bfdf56a2.png)
 
-## Results  
+# Results  
 
 ## Results for Sentiment Analysis and Collaborative Filtering
 
@@ -78,3 +78,25 @@ For solving Time Efficient Shortest Path-
 ## Results for Time-Efficient Shortest path algorithms
 
 ![image](https://user-images.githubusercontent.com/46960431/112869842-38327300-90db-11eb-8d44-37d12c3192c0.png)
+
+# Analysis of Results of various approaches of Dijkstra algorithm
+
+![image](https://user-images.githubusercontent.com/46960431/112872768-62d1fb00-90de-11eb-9872-c4c7d08ca165.png)
+-----------------------------------------------------------------------------------------------------------------------
+![image](https://user-images.githubusercontent.com/46960431/112872920-91e86c80-90de-11eb-849e-5b01a348d0bf.png)
+--
+![image](https://user-images.githubusercontent.com/46960431/112873172-ea1f6e80-90de-11eb-9fa2-de2db0a3856c.png)
+---
+![image](https://user-images.githubusercontent.com/46960431/112874275-59499280-90e0-11eb-8ecc-315c5a14317c.png)
+--
+![image](https://user-images.githubusercontent.com/46960431/112873363-29e65600-90df-11eb-82c7-95fcb11804dc.png)
+
+# Visualization of Results
+
+![image](https://user-images.githubusercontent.com/46960431/112874506-aa598680-90e0-11eb-827b-d081e2d02969.png)
+![image](https://user-images.githubusercontent.com/46960431/112874552-b5acb200-90e0-11eb-91a0-7130064d4b17.png)
+
+
+
+
+
