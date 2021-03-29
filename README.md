@@ -60,7 +60,21 @@ For solving Time Efficient Shortest Path-
 
 ![image](https://user-images.githubusercontent.com/46960431/112867935-1afca500-90d9-11eb-91f7-bd0d76f1a189.png)
 
+* ### Algorithm of Bi-directional Dijkstra
+
+![image](https://user-images.githubusercontent.com/46960431/112868671-f0f7b280-90d9-11eb-89fd-10c5bfdf56a2.png)
+
+## Results  
+
+## Results for Sentiment Analysis and Collaborative Filtering
+
+![image](https://user-images.githubusercontent.com/46960431/112868857-28665f00-90da-11eb-8a8e-c4bdb07e5426.png)
 
 
+## Results for Encryption Algorithm
 
+![image](https://user-images.githubusercontent.com/46960431/112869516-e1c53480-90da-11eb-91b1-68986e4a11fe.png)
 
+## Results for Time-Efficient Shortest path algorithms
+
+![image](https://user-images.githubusercontent.com/46960431/112869842-38327300-90db-11eb-8d44-37d12c3192c0.png)
