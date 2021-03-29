@@ -47,6 +47,18 @@ For solving Time Efficient Shortest Path-
 
 ## Use-Case Diagram
 
+![image](https://user-images.githubusercontent.com/46960431/112867546-b04b6980-90d8-11eb-9eee-d05c76457d1a.png)
+
+
+## Algorithms 
+
+* ### Algorithm of Collaborative Filtering:  
+
+![image](https://user-images.githubusercontent.com/46960431/112867812-f6083200-90d8-11eb-9388-3f9aae7334ba.png)
+
+* ### Algorithm of Sentiment Analysis
+
+![image](https://user-images.githubusercontent.com/46960431/112867935-1afca500-90d9-11eb-91f7-bd0d76f1a189.png)
 
 
 
