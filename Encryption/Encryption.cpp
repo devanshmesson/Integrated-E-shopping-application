@@ -126,11 +126,19 @@ class Vigenere_Cipher
   string plaintext, ciphertext, key, output;
   bool choice;
   string newkey = key;
+  int cnt=0;
   int encrypt()
   {
+     cnt++;
      for(int i = 0; i < plaintext.length(); i++) ciphertext +=(plaintext[i]+newkey[i])%26 +65;
-     cout<<"Encrypted message:"<<ciphertext<<endl;
-     decrypt();
+     if(cnt>1)cout<<"Encrypted message:"<<ciphertext<<endl;
+     if(cnt==1)
+      {
+        plaintext=ciphertext;
+        ciphertext.clear();
+        encrypt();
+      }
+     else decrypt();
   }
 };
 
@@ -138,14 +146,14 @@ class Vigenere_Cipher
 
 int main()
 {
-  freopen("input.txt","r",stdin);freopen("output8.txt","w",stdout);
+  freopen("input.txt","r",stdin);freopen("output1.txt","w",stdout);
    
   //Creating object of class Encrypt
   RSA_Encryption encr;
   Vigenere_Cipher cipher;
   
   int choice;
-  cout<<"Enter choice:"<<endl;;
+  cout<<"Enter choice:"<<endl;
   cout<<"1. Encrypt/Decrypt by RSA algorithm"<<endl;
   cout<<"2. Encrypt/Decrypt by Vigenere Cipher algorithm"<<endl;
   cin>>choice;
