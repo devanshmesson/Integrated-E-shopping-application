@@ -1,0 +1,31 @@
+//Code for making Collaborative dataset
+
+#include<bits/stdc++.h>
+using namespace std;
+#define freopen freopen("temp.txt","r",stdin);freopen("output1.txt","w",stdout);
+int main()
+{
+  freopen
+  
+  int num=0,cnt=0,till=40000;
+  while(till--)
+  {
+  	int a,b,c;
+  	string s;
+  	cin>>a>>b>>c;
+  	getline(cin,s);
+  	// if(a==-1)break;
+  	cnt++;
+  	cnt%=5;
+  	if(cnt==0)cnt=5;
+  	s.erase(s.begin());
+
+  	for(int i=0;i<s.size();i++)
+  	{
+      if(s[i]==',')s[i]=' ';
+  	}
+
+  	if(cnt==1)num++;
+  	cout<<num<<","<<b<<","<<c<<","<<s<<endl;
+  }
+}
