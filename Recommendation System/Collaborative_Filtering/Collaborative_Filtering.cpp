@@ -155,32 +155,23 @@ void phone_recommendation_system(int active_user, int K)
 {
 
   vector<phone_rate>* predicted_rating=NULL;//pointer variable
-    float pred_rating = 0;
-    if(database.find(active_user)==database.end())
-        {
+  float pred_rating = 0;
+  if(database.find(active_user)==database.end())
+  {
    //corr_active unordered_map contains the correlation value of the other user 
    // following their user_id except active_user
     unordered_map<int, float> corr_active = get_correlation(active_user);
-    
     predicted_rating=new vector<phone_rate>();//assigning dynamically the memory to phone_rate structure
-
-        
-
     for(auto& phone_it : phone_map)//iterate over all phone_id
-            {
-                pred_rating=0;
-
-
+    {
+       pred_rating=0;
       int phone_id=phone_it.first;
-
       if(phone_user.find(phone_id)!=phone_user.end())
-                {
+      {
 
         vector<int>& user_list=phone_user[phone_id];
-       
-
         for(int user_id : user_list)
-                    {
+        {
 
           if(corr_active.find(user_id) == corr_active.end())///if search not found that it starts from beginning
             continue;
@@ -189,27 +180,21 @@ void phone_recommendation_system(int active_user, int K)
           //we have store inside user_list unordered_map
 
          ///final predicted rating by finding the correlation of a particular user_id
-          pred_rating +=corr_active[user_id]*(rating_map[user_id][phone_id]- avg_rating[user_id]);
-         
+          pred_rating +=corr_active[user_id]*(rating_map[user_id][phone_id]- avg_rating[user_id]); 
         }
 
       }
-
-
-     //initialize the object of the phone_rate structure and using that object 
+       //initialize the object of the phone_rate structure and using that object 
       //i have to acces the data inside the phone_rate vector
       phone_rate m;
       m.phone_id=phone_id;
       m.rating=pred_rating;
      //now push the data into predicted_rating vector pointer
       predicted_rating->push_back(m);
-
     }
     //now sort the value using compare_phone_rating_score
     sort(predicted_rating->begin(), predicted_rating->end(),compare_phone_rating_score);
-
     database[active_user]=*predicted_rating;
-
     corr_active.clear();
 }
   else
