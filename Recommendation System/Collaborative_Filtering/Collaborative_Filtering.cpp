@@ -1,12 +1,14 @@
-#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include<unordered_map>
 #include<vector>
 #include <algorithm>
+#include<bits/stdc++.h>
 #include<cmath>
 using namespace std;
+
+
 
 //user-defined variable 
 struct phone_rate
@@ -156,6 +158,7 @@ void phone_recommendation_system(int active_user, int K)
 
   vector<phone_rate>* predicted_rating=NULL;//pointer variable
   float pred_rating = 0;
+  float den=0;
   if(database.find(active_user)==database.end())
   {
    //corr_active unordered_map contains the correlation value of the other user 
@@ -181,11 +184,13 @@ void phone_recommendation_system(int active_user, int K)
 
          ///final predicted rating by finding the correlation of a particular user_id
           pred_rating +=corr_active[user_id]*(rating_map[user_id][phone_id]- avg_rating[user_id]); 
+          den+=corr_active[user_id];
         }
 
       }
        //initialize the object of the phone_rate structure and using that object 
       //i have to acces the data inside the phone_rate vector
+      pred_rating=pred_rating/den;
       phone_rate m;
       m.phone_id=phone_id;
       m.rating=pred_rating;
@@ -235,7 +240,7 @@ int main()
 
   ifstream fin;
   fin.open("input.txt");
-  freopen("output8.txt","w",stdout);
+  freopen("output1.txt","w",stdout);
   cout<<"\nComputing User average rating.... \n";
   obj.user_rating_avg();
   int user_id=-2, K;
@@ -273,3 +278,4 @@ int main()
   }   
   return 0;
 }
+
